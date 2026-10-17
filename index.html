@@ -79,23 +79,22 @@ function getLeapMonth(y){return lunarInfo[y-1900]&0xf;}
 function getLeapMonthDays(y){return lunarInfo[y-1900]&0x10000?30:29;}
 function getNormalMonthDays(y,m){return lunarInfo[y-1900]&(0x10000>>m)?30:29;}
 
-// 拉取网络标准北京时间
+// 国内北京时间接口
 async function getNetTime(){
-    try{
-        const res = await fetch("https://worldtimeapi.org/api/timezone/Asia/Shanghai");
-        const data = await res.json();
-        return new Date(data.datetime);
-    }catch(e){
-        // 网络接口失败降级，使用本地时间兜底
-        return new Date();
-    }
+  try{
+    const res = await fetch("https://api.beijing-time.org/time.json");
+    const data = await res.json();
+    return new Date(data.time);
+  }catch(e){
+    console.log("网络时间获取失败，降级本地时间",e);
+    return new Date();
+  }
 }
 async function update(){
     const now = await getNetTime();
     document.getElementById("lunarTxt").innerText = solar2Lunar(now.getFullYear(),now.getMonth()+1,now.getDate());
 }
 update();
-// 每分钟刷新一次
 setInterval(update, 60000);
 </script>
 </body>
