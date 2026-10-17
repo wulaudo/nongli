@@ -1,68 +1,73 @@
-<script>
-const lunarInfo = [
-0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
-0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
-0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
-0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
-0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
-0x06ca0,0x0b550,0x15355,0x04da0,0x0a5d0,0x14573,0x052d0,0x0a9a8,0x0e950,0x06aa0,
-0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
-0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b5a0,0x195a6,
-0x095b0,0x049b0,0x0a974,0x0a4b0,0x0aa50,0x1b252,0x06d20,0x0ada0
-];
-const Gan = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
-const Zhi = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
-const monthCn = ["正","二","三","四","五","六","七","八","九","十","冬","腊"];
-const dayCn = ["","一","二","三","四","五","六","七","八","九","十"];
-
-function getGZ(year){return Gan[(year-4)%10]+Zhi[(year-4)%12];}
-function solar2Lunar(sy,sm,sd){
-    let base = new Date(1900,0,31);
-    let target = new Date(sy,sm-1,sd);
-    let days = Math.round((target-base)/86400000);
-    let ly=1900;
-    while(ly<2100 && days>0){
-        let yDays=getLunarYearDays(ly);
-        if(days<=yDays) break;
-        days -= yDays; ly++;
-    }
-    let leapM = getLeapMonth(ly);
-    let lm=1, isLeap=false;
-    while(lm<=12 && days>0){
-        let mDays;
-        if(leapM===lm && !isLeap){
-            isLeap=true;
-            mDays = getLeapMonthDays(ly);
-        }else{
-            mDays = getNormalMonthDays(ly,lm);
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>农历显示</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: transparent;
         }
-        if(days<=mDays) break;
-        days -= mDays;
-        isLeap ? (isLeap=false,lm++) : lm++;
-    }
-    let ld = days;
-    let dStr;
-    if(ld<=10) dStr="初"+dayCn[ld];
-    else if(ld===20) dStr="二十";
-    else if(ld===30) dStr="三十";
-    else if(ld<20) dStr="十"+dayCn[ld-10];
-    else dStr="廿"+dayCn[ld-20];
-    return `${getGZ(ly)}年 ${isLeap?"闰":""}${monthCn[lm-1]}月${dStr}`;
-}
-function getLunarYearDays(y){
-    let sum=348;
-    for(let i=0x8000;i>0x8;i>>=1) sum += lunarInfo[y-1900]&i ?1:0;
-    return sum;
-}
-function getLeapMonth(y){return lunarInfo[y-1900]&0xf;}
-function getLeapMonthDays(y){return lunarInfo[y-1900]&0x10000?30:29;}
-function getNormalMonthDays(y,m){return lunarInfo[y-1900]&(0x10000>>m)?30:29;}
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        #lunar {
+            color: #ffffff;
+            font-size: 3rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 10px rgba(0,0,0,0.3);
+            background: transparent;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="lunar">加载中…</div>
 
-// 直接读取本机时间（电脑时间为准，不再请求网络API）
-function update(){
-    const now = new Date();
-    document.getElementById("lunarTxt").innerText = solar2Lunar(now.getFullYear(),now.getMonth()+1,now.getDate());
-}
-update();
-setInterval(update, 1000);
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.12/lunar.js"></script>
+    <script>
+        function showLunar() {
+            try {
+                var now = new Date();
+                var solar = Solar.fromDate(now);
+                var lunar = solar.getLunar();
+
+                var yearText = lunar.getYearInGanZhi();
+                var monthText = lunar.getMonthInChinese();
+                var dayText = lunar.getDayInChinese();
+
+                // 获取节日
+                var festivals = lunar.getFestivals();
+
+                var text;
+                if (festivals.length > 0) {
+                    // 有节日：丙午年 重阳节
+                    text = yearText + "年 " + festivals[0];
+                } else {
+                    // 没节日：丙午年 九月初九
+                    var prefix = "";
+                    if (lunar.getMonth() < 0) {
+                        prefix = "闰";
+                    }
+                    text = yearText + "年 " + prefix + monthText + "月" + dayText;
+                }
+
+                document.getElementById('lunar').textContent = text;
+            } catch (e) {
+                document.getElementById('lunar').textContent = "出错了";
+                console.error("农历计算失败：", e);
+            }
+        }
+
+        showLunar();
+        setInterval(showLunar, 60000);
+    </script>
+</body>
+</html>
