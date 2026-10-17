@@ -22,7 +22,8 @@
             font-size: 3rem;
             font-weight: 300;
             letter-spacing: 0.1em;
-            text-shadow: 0 0 10px rgba(0,0,0,0.3);
+            /* 底部阴影：向下偏移 4px，模糊 8px */
+            text-shadow: 0 4px 8px rgba(0,0,0,0.6);
             background: transparent;
             padding: 1rem 2rem;
         }
@@ -43,15 +44,12 @@
                 var monthText = lunar.getMonthInChinese();
                 var dayText = lunar.getDayInChinese();
 
-                // 获取节日
                 var festivals = lunar.getFestivals();
 
                 var text;
                 if (festivals.length > 0) {
-                    // 有节日：丙午年 重阳节
                     text = yearText + "年 " + festivals[0];
                 } else {
-                    // 没节日：丙午年 九月初九
                     var prefix = "";
                     if (lunar.getMonth() < 0) {
                         prefix = "闰";
